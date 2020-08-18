@@ -12,6 +12,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 
@@ -22,6 +23,9 @@ public class LoanClient extends Application {
     private TextField tfLoanAmount = new TextField();
     private TextArea ta = new TextArea();
     private Button btRegister = new Button("calculate");
+    private ObjectInputStream objectInputStream;
+    private ObjectOutputStream objectOutputStream;
+    private Socket socket;
 
     String host = "localhost";
 
@@ -49,23 +53,46 @@ public class LoanClient extends Application {
 
         btRegister.setOnAction(new ButtonListener());
 
+        try {
+            socket = new Socket(host, 8001);
+            objectInputStream = new ObjectInputStream(socket.getInputStream());
+            objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
+
+        } catch (IOException e) {
+                e.printStackTrace();
+        }
+
+        /*try {
+            Payment payment = (Payment) objectInputStream.readObject();
+            ta.appendText("Monthly Payment: " + payment.getMonthlyPayment());
+            ta.appendText("Total Payment: " + payment.getTotalPayment());
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }*/
+
     }
 
     private class ButtonListener implements EventHandler<ActionEvent> {
         @Override
         public void handle(ActionEvent actionEvent) {
             try {
-                Socket socket = new Socket(host, 8000);
 
-                ObjectOutputStream toServer = new ObjectOutputStream(socket.getOutputStream());
-                double annualInterestRate = Double.parseDouble(tfAnnualInterestRate.getText());
-                double numberOfYears = Double.parseDouble(tfNumberOfYears.getText());
-                double loanAmount = Double.parseDouble(tfLoanAmount.getText());
+                double annualInterestRate = Double.parseDouble(tfAnnualInterestRate.getText().trim());
+                double numberOfYears = Double.parseDouble(tfNumberOfYears.getText().trim());
+                double loanAmount = Double.parseDouble(tfLoanAmount.getText().trim());
 
                 Loan loan = new Loan(annualInterestRate, numberOfYears, loanAmount);
-                toServer.writeObject(loan);
+                objectOutputStream.writeObject(loan);
+                objectOutputStream.flush();
 
-            } catch (IOException e) {
+                ta.appendText("Data is sent to the server" + "\n");
+                ta.appendText("\n");
+
+                Payment payment = (Payment) objectInputStream.readObject();
+                ta.appendText("Monthly Payment: " + payment.getMonthlyPayment());
+                ta.appendText("Total Payment: " + payment.getTotalPayment());
+
+            } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
             }
 
