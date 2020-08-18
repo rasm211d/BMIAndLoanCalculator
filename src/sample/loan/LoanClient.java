@@ -61,7 +61,10 @@ public class LoanClient extends Application {
                 double annualInterestRate = Double.parseDouble(tfAnnualInterestRate.getText());
                 double numberOfYears = Double.parseDouble(tfNumberOfYears.getText());
                 double loanAmount = Double.parseDouble(tfLoanAmount.getText());
-                
+
+                Loan loan = new Loan(annualInterestRate, numberOfYears, loanAmount);
+                toServer.writeObject(loan);
+
             } catch (IOException e) {
                 e.printStackTrace();
             }
