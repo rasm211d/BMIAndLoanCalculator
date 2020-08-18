@@ -3,9 +3,12 @@ package sample.loan;
 import javafx.application.Application;
 import javafx.stage.Stage;
 
-public class LoanServer extends Application {
-    @Override
-    public void start(Stage stage) throws Exception {
+public class LoanServer {
+    public static void main(String[] args) {
+        new LoanServer();
+    }
+
+    public LoanServer() {
 
     }
 }
