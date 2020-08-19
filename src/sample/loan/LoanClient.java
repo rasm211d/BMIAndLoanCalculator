@@ -15,9 +15,11 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.Observable;
+import java.util.Observer;
 
 
-public class LoanClient extends Application {
+public class LoanClient extends Application{
     private TextField tfAnnualInterestRate = new TextField();
     private TextField tfNumberOfYears = new TextField();
     private TextField tfLoanAmount = new TextField();
@@ -25,12 +27,12 @@ public class LoanClient extends Application {
     private Button btRegister = new Button("calculate");
     private ObjectInputStream objectInputStream;
     private ObjectOutputStream objectOutputStream;
-    private Socket socket;
 
     String host = "localhost";
 
     @Override
     public void start(Stage stage) throws Exception {
+
         GridPane gridPane = new GridPane();
         gridPane.add(new Label("Annual Interest Rate: "),0,0);
         gridPane.add(tfAnnualInterestRate, 1 ,0);
@@ -51,51 +53,51 @@ public class LoanClient extends Application {
         stage.setScene(scene);
         stage.show();
 
-        btRegister.setOnAction(new ButtonListener());
-
         try {
-            socket = new Socket(host, 8001);
-            objectInputStream = new ObjectInputStream(socket.getInputStream());
+            Socket socket = new Socket(host, 8000);
             objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
+            objectInputStream = new ObjectInputStream(socket.getInputStream());
 
         } catch (IOException e) {
-                e.printStackTrace();
+            e.printStackTrace();
         }
 
-        /*try {
-            Payment payment = (Payment) objectInputStream.readObject();
-            ta.appendText("Monthly Payment: " + payment.getMonthlyPayment());
-            ta.appendText("Total Payment: " + payment.getTotalPayment());
-        } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
-        }*/
+        btRegister.setOnAction(new ButtonListener());
+
+
 
     }
 
     private class ButtonListener implements EventHandler<ActionEvent> {
         @Override
         public void handle(ActionEvent actionEvent) {
-            try {
+            new Thread(() -> {
+                try {
+                    double annualInterestRate = Double.parseDouble(tfAnnualInterestRate.getText().trim());
+                    double numberOfYears = Double.parseDouble(tfNumberOfYears.getText().trim());
+                    double loanAmount = Double.parseDouble(tfLoanAmount.getText().trim());
 
-                double annualInterestRate = Double.parseDouble(tfAnnualInterestRate.getText().trim());
-                double numberOfYears = Double.parseDouble(tfNumberOfYears.getText().trim());
-                double loanAmount = Double.parseDouble(tfLoanAmount.getText().trim());
+                    Loan loan = new Loan(annualInterestRate, numberOfYears, loanAmount);
+                    objectOutputStream.writeObject(loan);
+                    //objectOutputStream.flush();
 
-                Loan loan = new Loan(annualInterestRate, numberOfYears, loanAmount);
-                objectOutputStream.writeObject(loan);
-                objectOutputStream.flush();
+                    ta.appendText("Data is sent to the server" + "\n");
+                    ta.appendText("\n");
 
-                ta.appendText("Data is sent to the server" + "\n");
-                ta.appendText("\n");
+                    //TODO Eller er det den her var???
+                    Payment payment = (Payment) objectInputStream.readObject();
+                    ta.appendText("Data recieved from the server: \n");
+                    ta.appendText("Monthly Payment: " + payment.getMonthlyPayment() + "\n");
+                    ta.appendText("Total Payment: " + payment.getTotalPayment() + "\n");
 
-                Payment payment = (Payment) objectInputStream.readObject();
-                ta.appendText("Monthly Payment: " + payment.getMonthlyPayment());
-                ta.appendText("Total Payment: " + payment.getTotalPayment());
+                } catch (IOException | ClassNotFoundException e) {
+                    e.printStackTrace();
+                }
+            }).start();
 
-            } catch (IOException | ClassNotFoundException e) {
-                e.printStackTrace();
-            }
 
         }
     }
+
+
 }

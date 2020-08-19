@@ -20,17 +20,18 @@ public class LoanServer extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
-        new LoanServer();
         ta = new TextArea();
         Scene scene = new Scene(new javafx.scene.control.ScrollPane(ta), 450, 200);
         stage.setScene(scene);
         stage.show();
+
+        new LoanServer();
     }
 
     public LoanServer() {
         new Thread(() -> {
             try {
-                ServerSocket serverSocket = new ServerSocket(8001);
+                ServerSocket serverSocket = new ServerSocket(8000);
                 System.out.println("Server started");
 
                 while (true) {

@@ -1,10 +1,12 @@
 package sample.loan;
 
-public class Payment {
+import java.io.Serializable;
+
+public class Payment implements Serializable {
     private double totalPayment;
     private double monthlyPayment;
 
-    public Payment(double totalPayment, double monthlyPayment) {
+    public Payment(double totalPayment, double monthlyPayment)  {
         this.totalPayment = totalPayment;
         this.monthlyPayment = monthlyPayment;
     }
